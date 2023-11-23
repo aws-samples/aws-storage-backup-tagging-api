@@ -137,7 +137,7 @@ class TestHelpers(TestCase):
         from utils.helpers import is_region_valid
         ec2_client = MockEC2Client()
         is_region_valid(ec2_client, "us-east-1")
-        self.assertRaises(InvalidRegionException, is_region_valid, ec2_client, "jnj")
+        self.assertRaises(InvalidRegionException, is_region_valid, ec2_client, "example")
 
     def test_get_caller_role(self):
         from utils.helpers import get_caller_role
