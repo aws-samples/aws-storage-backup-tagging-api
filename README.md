@@ -1,6 +1,6 @@
 # Centralized Storage Resource Tagging API
 
-    This project contains a centralized API to put resource level tags for AWS storage resources to backup/skip backup of the resource by AWS Backup service.
+    This project contains a centralized API for backing up following types of AWS storage resources using the AWS Backup service.
     The following types of resources are currently supported by the API:
     * RDS
     * EFS
@@ -8,6 +8,7 @@
     * Dynamodb
     * FSx
     * Redshift
+    The repository contains BDD tests for validating the API for each type of AWS storage resource.  
 
 ## Architecture
 ![Architecture2](docs/arch.png)
@@ -15,8 +16,8 @@
 ```
 .
 ├── README.md                           <-- This documentation file
-├── storage_resource_tagging            <-- Lambda function that adds schedule tags for a resource
-├── storage_resource_exception_tagging  <-- Lambda function that deletes schedule tags for a resource
+├── storage_resource_tagging            <-- Lambda function that adds backup tags for a resource
+├── storage_resource_exception_tagging  <-- Lambda function that deletes backup tags for a resource
 ├── utils                               <-- shared functions
 ├── config                              <-- configuration params
 ├── docs                                <-- Swagger doc 
@@ -29,7 +30,6 @@ Install NodeJS
 Install Serverless framework
 Install Python 3.6, Pip3
 ```
-
 
 ## Test
 ```shell script
