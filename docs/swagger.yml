@@ -1,0 +1,237 @@
+openapi: 3.0.1
+info:
+  title: storage_resource_tagging
+  description: |
+    API to tag storage resources with vpcx-backup tag key or vpcx-skip-backup tag key
+    Example 1 - Put vpcx-backup tag on the storage resources
+
+      curl --location --request PUT 'https://vpce-012710b591427fc69-kykwwlo6.execute-api.us-east-1.vpce.amazonaws.com/dev/v1/accounts/itx-046/regions/us-east-1/resourceType/storage' \
+      --header 'authorization: Bearer ey...' \
+      --header 'Host: 9tdw14gh83.execute-api.us-east-1.amazonaws.com'
+
+  license:
+    name: example
+  version: 1.0.0
+servers:
+  - url: https://vpce-012710b591427fc69-kykwwlo6.execute-api.us-east-1.vpce.amazonaws.com/dev
+  - url: https://vpce-0417f07562a900baf-v5mj0erg.execute-api.us-east-1.vpce.amazonaws.com/qa
+  - url: https://vpce-0f642d37f6f41feab-as20t7wi.execute-api.us-east-1.vpce.amazonaws.com/prod
+
+components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      description: This API uses OAuth 2.
+      flows:
+        clientCredentials:
+          tokenUrl: https://login.microsoftonline.com/example.onmicrosoft.com/oauth2/v2.0/token
+          scopes:
+            read: https://clx-awsapi-tagging-dev.example.com/.default
+
+security:
+  - oauth2: [read]
+
+paths:
+  /v1/accounts/{account-id}/regions/{region-name}/resourceType/{resource-type}:
+    summary: endpoint to tag storage resources with tags
+    description: |
+      A list of tags in the request body will be applied to all the storage resources in the account.
+    put:
+      parameters:
+        - in: header
+          name: Host
+          required: true
+          description: The API id of aws API Gateway.
+          schema:
+            type: string
+          example: |
+            { Host: pygqxstmyi.execute-api.us-east-1.amazonaws.com }
+        - in: header
+          name: Authorization
+          required: true
+          description: Oauth2 token of the user or app with leading 'Bearer '
+          schema:
+            type: string
+        - in: path
+          name: account-id
+          required: true
+          description: aws account name
+          schema:
+            type: string
+          example: itx-016
+        - in: path
+          name: region-name
+          required: true
+          description: aws region name where CMK and encrypted vaults will be created
+          schema:
+            type: string
+          example: us-east-1
+        - in: path
+          name: resource-type
+          required: true
+          description: the resource type that has to be tagged with the tags in the request
+          schema:
+            type: string
+          example: storage
+        - in: body
+          required: true
+          description: |
+            a json object with key value pairs that represent the tag keys and tag values that need to be applied
+            to all the storage resources
+          schema:
+            type: json_object
+          example: {
+            "tag_key_1": "tag_value_1",
+            "tag_key_2": "tag_value_2"
+          }
+      responses:
+        200:
+          description: All storage resources in the account have been tagged with the tags in the request body
+          content:
+            application/json:
+              examples:
+                taggedAllResources:
+                  statusCode: 200,
+                  successMsg: 'All the storage resources have been tagged with the tag list. Resources marked to skip vpcx-backups are untagged.'
+        400:
+          description: At least one of the parameters in the request are invalid
+          content:
+            application/json:
+              examples:
+                regionInvalid:
+                  errorCode: 400,
+                  errorMessage: "Please enter a valid region in the url path"
+                resourceTypeInvalid:
+                  errorCode: 400,
+                  errorMsg: "resource type should be storage"
+                tagListInvalid:
+                  errorCode: 400,
+                  errorMsg: "The request body has empty values for the these tagKeys: [invalid_tag_key_1, invalid_tag_key_2]. Tag values should be non-empty"
+        401:
+          description: Authentication Failed
+          content:
+            application/json:
+              examples:
+                authFailure:
+                  errorCode: 401,
+                  errorMsg: "Authentication Failed"
+        404:
+          description: Account Invalid
+          content:
+            application/json:
+              examples:
+                accountInvalid:
+                  errorCode: 404
+                  errorMsg: "No account for the project_id"
+        500:
+          description: Exception occurred
+          content:
+            application/json:
+              examples:
+                exceptionOccurred:
+                  errorCode: 500,
+                  errorMsg: "Exception details"
+  /v1/accounts/{account-id}/regions/{region-name}/exceptions/backup/{exception-action}:
+    summary: endpoint to tag storage resources with exception tag
+    description: |
+      The vpcx-skip-backup tag key will be applied to the resources in the request body
+    put:
+      parameters:
+        - in: header
+          name: Host
+          required: true
+          description: The API id of aws API Gateway.
+          schema:
+            type: string
+          example: |
+            { Host: pygqxstmyi.execute-api.us-east-1.amazonaws.com }
+        - in: header
+          name: Authorization
+          required: true
+          description: Oauth2 token of the user or app with leading 'Bearer '
+          schema:
+            type: string
+        - in: path
+          name: account-id
+          required: true
+          description: aws account name
+          schema:
+            type: string
+          example: itx-016
+        - in: path
+          name: region-name
+          required: true
+          description: aws region name where CMK and encrypted vaults will be created
+          schema:
+            type: string
+          example: us-east-1
+        - in: path
+          name: exception-action
+          required: true
+          description: the action verb indication whether to enable or disable the skip backup action for the resources
+          schema:
+            type: string
+          example: enable
+        - in: body
+          required: true
+          description: |
+            a json object with the resource list that should be tagged with the skip backup tag
+          schema:
+            type: json_object
+          example: {
+            "resource_arn_list": ["resource_1_arn", "resource_2_arn"],
+            "volume_ids": ["volume_1_id", "volume_2_id"]
+          }
+      responses:
+        200:
+          description: All storage resources in the request body have been tagged with the vpcx-skip-backup tag
+          content:
+            application/json:
+              examples:
+                skipEnabled:
+                  statusCode: 200,
+                  successMsg: 'storage resources tagged with tag key vpcx-skip-backup and tag value true'
+                skipDisabled:
+                  statusCode: 200,
+                  successMsg: 'storage resources un tagged with tag key vpcx-skip-backup'
+        400:
+          description: At least one of the parameters in the request are invalid
+          content:
+            application/json:
+              examples:
+                regionInvalid:
+                  errorCode: 400,
+                  errorMessage: "Please enter a valid region in the url path"
+                exceptionActionInvalid:
+                  errorCode: 400,
+                  errorMsg: "resource type should be storage"
+                resourceListInvalid:
+                  errorCode: 400,
+                  errorMsg: "The request body has empty values for the these tagKeys: [invalid_tag_key_1, invalid_tag_key_2]. Tag values should be non-empty"
+                enableWhenAccountLegalHold:
+                  errorCode: 400,
+                  errorMsg: "Some resources in the account have the vpcx-backup tag with value legal-hold.Will not skip any resources. Make sure the account is not in legal-hold and then try again"
+        401:
+          description: Authentication Failed
+          content:
+            application/json:
+              examples:
+                authFailure:
+                  errorCode: 401,
+                  errorMsg: "Authentication Failed"
+        404:
+          description: Account Invalid
+          content:
+            application/json:
+              examples:
+                accountInvalid:
+                  errorCode: 404
+                  errorMsg: "No account for the project_id"
+        500:
+          description: Exception occurred
+          content:
+            application/json:
+              examples:
+                exceptionOccurred:
+                  errorCode: 500,
+                  errorMsg: "Exception details"
